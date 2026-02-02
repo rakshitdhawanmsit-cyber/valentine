@@ -1,95 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Valentines Day</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Will You Be My Valentine?</title>
+
   <style>
-    .gradient-background {
-      background: rgb(255, 208, 229);
-      background: linear-gradient(180deg, rgba(255, 208, 229, 1) 0%, rgba(255, 232, 242, 1) 36%, rgba(255, 255, 255, 1) 100%);
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      font-family: "Comic Sans MS", cursive, sans-serif;
     }
 
-    .bounce2 {
-      animation: bounce2 2s ease infinite;
+    .card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 10;
+      max-width: 90%;
     }
 
-    @keyframes bounce2 {
-      0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
+    h1 {
+      color: #e63946;
+    }
+
+    #message {
+      min-height: 26px;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    button {
+      padding: 14px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    #yes {
+      background: #38b000;
+      color: white;
+      margin-right: 20px;
+    }
+
+    #no {
+      position: absolute;
+      background: #e63946;
+      color: white;
+    }
+
+    .final-img {
+      margin-top: 25px;
+      max-width: 50%;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
       }
-      40% {
-        transform: translateY(-20px);
+
+      to {
+        opacity: 1;
+        transform: scale(1);
       }
-      60% {
-        transform: translateY(-10px);
-      }
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
     }
   </style>
 </head>
-<body class="gradient-background">
-  <div class="flex items-center justify-center h-screen">
-    <div class="flex flex-col items-center p-4">
-      <img id="imageDisplay" src="./images/image1.gif" alt="Cute kitten with flowers" class="rounded-md h-[300px]" style="object-fit: cover;" />
-      <h2 id="valentineQuestion" class="text-4xl font-bold italic text-[#bd1e59] my-4">Radhika - Will you be my Valentine?</h2>
-      <div class="flex gap-4 pt-[20px] items-center" id="responseButtons">
-        <button id="yesButton"
-          class="bounce2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-[20px] font-medium disabled:pointer-events-none disabled:opacity-50 hover:bg-green-400 min-h-12 min-w-[75px] px-4 py-2 bg-green-500 text-white transition">
-          Yes
-        </button>
-        <button id="noButton"
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-[20px] font-medium transition disabled:pointer-events-none disabled:opacity-50 hover:bg-red-700 h-12 min-w-[75px] w-auto px-4 py-2 bg-red-500 text-white">
-          No
-        </button>
-      </div>
-    </div>
+
+<body>
+
+  <div class="card" id="card">
+    <h1>Radhika,Will you be my Valentine? 💘</h1>
+    <div id="message"></div>
+    <button id="yes">Yes 💍</button>
+    <button id="no">No 😈</button>
   </div>
 
-  <script type="module">
-    import confetti from 'https://cdn.skypack.dev/canvas-confetti';
-    const yesButton = document.getElementById('yesButton');
-    const noButton = document.getElementById('noButton');
-    const imageDisplay = document.getElementById('imageDisplay');
-    const valentineQuestion = document.getElementById('valentineQuestion');
-    const responseButtons = document.getElementById('responseButtons');
-  
-    let noClickCount = 0;
-    let buttonHeight = 48; // Starting height in pixels
-    let buttonWidth = 80;
-    let fontSize = 20; // Starting font size in pixels
-    const imagePaths = [
-      "./images/image1.gif",
-      "./images/image2.gif",
-      "./images/image3.gif",
-      "./images/image4.gif",
-      "./images/image5.gif",
-      "./images/image6.gif",
-      "./images/valentine.jpg"
+  <canvas id="confetti"></canvas>
+
+  <!-- 🎵 Background music -->
+  <audio id="music" loop>
+    <source src="https://cdn.pixabay.com/audio/2023/02/28/audio_65c1c6a2b2.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 🫀 Heartbeat -->
+  <audio id="heartbeat" loop>
+    <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_2f1e6c5c7b.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    /* ------------------------------
+       Mouse tracking
+    --------------------------------*/
+    let mouseX = 0, mouseY = 0;
+    let lastX = 0, lastY = 0;
+
+    document.addEventListener("mousemove", e => {
+      lastX = mouseX;
+      lastY = mouseY;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    /* ------------------------------
+       Messages
+    --------------------------------*/
+    const messages = [
+      "Are you sure?? 😭",
+      "WHY ARE YOU LIKE THIS?",
+      "MY HEART IS RACING 🫀",
+      "STOP TRYING 😤",
+      "JUST SAY YES ALREADY 💔"
     ];
-  
-    noButton.addEventListener('click', function() {
-      if (noClickCount < 5) {
-        noClickCount++;
-        imageDisplay.src = imagePaths[noClickCount];
-        buttonHeight += 35; // Increase height by 5px on each click
-        buttonWidth += 35;
-        fontSize += 25; // Increase font size by 1px on each click
-        yesButton.style.height = `${buttonHeight}px`; // Update button height
-        yesButton.style.width = `${buttonWidth}px`;
-        yesButton.style.fontSize = `${fontSize}px`; // Update font size
-        if (noClickCount < 6) {
-          noButton.textContent = ["No", "Are you sure?", "Pookie please", "Don't do this to me :(", "You're breaking my heart", "I'm gonna cry..."][noClickCount];
-        }
+    let msgIndex = 0;
+
+    /* ------------------------------
+       Audio
+    --------------------------------*/
+    const music = document.getElementById("music");
+    const heartbeat = document.getElementById("heartbeat");
+    let audioStarted = false;
+    let dodgeCount = 0;
+
+    function startAudio() {
+      if (!audioStarted) {
+        music.volume = 0.4;
+        heartbeat.volume = 0.6;
+        music.play().catch(() => { });
+        heartbeat.play().catch(() => { });
+        audioStarted = true;
       }
+    }
+
+    function speedUpHeartbeat() {
+      dodgeCount++;
+      heartbeat.playbackRate = Math.min(1 + dodgeCount * 0.1, 1.9);
+    }
+
+    /* ------------------------------
+       Vibration
+    --------------------------------*/
+    function vibrate() {
+      if (navigator.vibrate) {
+        navigator.vibrate([40, 30, 40]);
+      }
+    }
+
+    /* ------------------------------
+       NO button logic
+    --------------------------------*/
+    const noBtn = document.getElementById("no");
+
+    function escape() {
+      startAudio();
+      speedUpHeartbeat();
+      vibrate();
+
+      const dx = mouseX - lastX;
+      const dy = mouseY - lastY;
+
+      let x = noBtn.offsetLeft + (dx > 0 ? -250 : 250);
+      let y = noBtn.offsetTop + (dy > 0 ? -250 : 250);
+
+      x += Math.random() * 200 - 100;
+      y += Math.random() * 200 - 100;
+
+      x = Math.max(0, Math.min(innerWidth - noBtn.offsetWidth, x));
+      y = Math.max(0, Math.min(innerHeight - noBtn.offsetHeight, y));
+
+      noBtn.style.transition = "all 0.1s linear";
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+
+      document.getElementById("message").textContent =
+        messages[Math.min(msgIndex++, messages.length - 1)];
+    }
+
+    noBtn.addEventListener("mouseenter", escape);
+    noBtn.addEventListener("touchstart", e => {
+      e.preventDefault();
+      escape();
     });
-  
-    yesButton.addEventListener('click', () => {
-      imageDisplay.src = './images/valentine.jpg';
-      valentineQuestion.textContent = "Yayyy!! I Love You Radhika!"; // Change the question text
-      responseButtons.style.display = 'none'; // Hide both buttons
-      confetti(); // Trigger confetti animation
-    });
-  </script>  
+
+    noBtn.style.left = "55%";
+    noBtn.style.top = "60%";
+
+    /* ------------------------------
+       Confetti
+    --------------------------------*/
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    function confettiBlast() {
+      const pieces = Array.from({ length: 260 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 6 + 4,
+        d: Math.random() * 6 + 2,
+        c: `hsl(${Math.random() * 360},100%,50%)`
+      }));
+
+      let t = 0;
+      (function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.c;
+          ctx.fill();
+          p.y += p.d;
+        });
+        if (t++ < 160) requestAnimationFrame(draw);
+      })();
+    }
+
+    /* ------------------------------
+       YES = Proposal + image
+    --------------------------------*/
+    document.getElementById("yes").onclick = () => {
+      startAudio();
+      confettiBlast();
+      heartbeat.playbackRate = 0.8;
+
+      document.getElementById("card").innerHTML = `
+    <h1>💍 I Love You Bacha 💖</h1>
+    <img 
+      src="./images/valentine.jpg"
+      alt="Us 💖"
+      class="final-img"
+    >
+    <p style="margin-top:15px;font-size:18px">
+      Happy Valentine’s Day 💘
+    </p>
+  `;
+    };
+  </script>
+
 </body>
+
 </html>
